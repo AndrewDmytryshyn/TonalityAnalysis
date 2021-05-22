@@ -18,6 +18,7 @@
 ### Simple Training
 При бажанні взаємодіяти з цим проектом рекомендуєм використовувати anaconda virtual environment
 так як виникає багато труднощів з бібліотеками.[тик](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/)
+
 Для початку потрібно:
 * Підготувати 3 датасети (були викоритані такі [датасети](http://study.mokoron.com/))
     * 1 датасет з текстами негативного змісту
