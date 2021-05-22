@@ -1,7 +1,7 @@
 import unittest
-from test.test_1_ru import test_positive
-from test.test_2_ru import test_negative
-from test.test_3_ru import test_neutral
+from tests.test_1_ru import test_positive
+from tests.test_2_ru import test_negative
+from tests.test_3_ru import test_neutral
 
 
 class MyTestCase(unittest.TestCase):
