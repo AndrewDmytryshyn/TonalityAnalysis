@@ -1,6 +1,17 @@
 import pandas as pd
 import numpy as np
-
+from sklearn.model_selection import train_test_split
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+from gensim.models import Word2Vec
+from keras.layers import Input
+from keras.layers.embeddings import Embedding
+import re
+from keras import optimizers
+from keras.layers import Dense, concatenate, Activation, Dropout
+from keras.models import Model
+from keras.layers.convolutional import Conv1D
+from keras.layers.pooling import GlobalMaxPooling1D
 # розпаковуємо розмічені датасети
 n = ['id', 'date', 'name', 'text', 'typr', 'rep', 'rtw', 'faw', 'stcount', 'foll', 'frien', 'listcount']
 data_positive = pd.read_csv('data/positive.csv', sep=';', error_bad_lines=False, names=n, usecols=['text'])
@@ -11,9 +22,6 @@ raw_data = np.concatenate((data_positive['text'].values[:sample_size],
                            data_negative['text'].values[:sample_size]), axis=0)
 labels = [1] * sample_size + [0] * sample_size
 
-import re
-
-
 # функція для обробки тексту
 def preprocess_text(text):
     text = text.lower().replace("ё", "е")
@@ -23,17 +31,11 @@ def preprocess_text(text):
     text = re.sub(' +', ' ', text)
     return text.strip()
 
-
 # обробляєм текст
 data = [preprocess_text(t) for t in raw_data]
 
-from sklearn.model_selection import train_test_split
-
 # розбиваєм набір даних на тренувальну і навчальні вибірки
 x_train, x_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=2)
-
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
 
 # відображення кожного речення в масив ідентифікаторів токенів
 # максимальна кількість слів в реченні
@@ -46,7 +48,6 @@ def get_sequences(tokenizer, x):
     sequences = tokenizer.texts_to_sequences(x)
     return pad_sequences(sequences, maxlen=SENTENCE_LENGTH)
 
-
 tokenizer = Tokenizer(num_words=NUM)
 tokenizer.fit_on_texts(x_train)
 
@@ -54,8 +55,6 @@ x_train_seq = get_sequences(tokenizer, x_train)
 x_test_seq = get_sequences(tokenizer, x_test)
 
 # створення і налаштування нейронної мережі
-from gensim.models import Word2Vec
-
 # загружаем навчену модель векторів слів
 w2v_model = Word2Vec.load('models/w2v/tweets_model.w2v')
 DIM = w2v_model.vector_size
@@ -68,18 +67,9 @@ for word, i in tokenizer.word_index.items():
     if word in w2v_model.wv.vocab.keys():
         embedding_matrix[i] = w2v_model.wv[word]
 
-from keras.layers import Input
-from keras.layers.embeddings import Embedding
-
 tweet_input = Input(shape=(SENTENCE_LENGTH,), dtype='int32')
 tweet_encoder = Embedding(NUM, DIM, input_length=SENTENCE_LENGTH,
                           weights=[embedding_matrix], trainable=False)(tweet_input)
-
-from keras import optimizers
-from keras.layers import Dense, concatenate, Activation, Dropout
-from keras.models import Model
-from keras.layers.convolutional import Conv1D
-from keras.layers.pooling import GlobalMaxPooling1D
 
 branches = []
 x = Dropout(0.2)(tweet_encoder)
