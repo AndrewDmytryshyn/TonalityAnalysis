@@ -102,4 +102,4 @@ model.compile(loss='binary_crossentropy', optimizer='adam', metrics=[precision, 
 model.summary()
 
 #зберігаєм навчену модель
-model.save_weights('cnn/cnn-trainable-03-0.78.hdf5')
+model.save_weights('cnn/cnn-trainable.hdf5')
