@@ -1,6 +1,6 @@
 # TonalityAnalysis
 Аналіз тональності текстів
-![gif](../docs/tonal.gif)
+![gif](/docs/tonal.gif)
 # Налаштування проекту
 Для початку потрібно:
 1.  Встановити середовище виконання [Python](https://www.python.org/ftp/python/3.9.4/python-3.9.4-amd64.exe)
