@@ -36,6 +36,7 @@
 * Подати в модуль tonality текст для аналізу
 * Отримаємо відповідь у форматі настрій
 ## Example
+![example](/docs/example.jpg)
 ## Учасники
 * [Андрій Дмитришин](https://github.com/AndrewDmytryshyn)
 * [Віталій Чередник](https://github.com/vitaliycherednik)
