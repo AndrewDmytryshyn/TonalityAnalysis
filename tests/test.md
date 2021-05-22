@@ -14,7 +14,7 @@
 
 
  ## Результати тестів:
-![example](../doc/test.jpg)
+![example](../tests/test.jpg)
 
 
  ## Код UNIT-тесту:
