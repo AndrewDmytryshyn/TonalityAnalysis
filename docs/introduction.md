@@ -21,3 +21,16 @@ labels = [1] * sample_size + [0] * sample_size
   * посилань на токен «URL»;
   * заміна згадки користувача на токен «USER»;
   * видалення знаків пунктуації.
+```python
+# функція для обробки тексту
+def preprocess_text(text):
+    text = text.lower().replace("ё", "е")
+    text = re.sub('((www\.[^\s]+)|(https?://[^\s]+))', 'URL', text)
+    text = re.sub('@[^\s]+', 'USER', text)
+    text = re.sub('[^a-zA-Zа-яА-Я1-9]+', ' ', text)
+    text = re.sub(' +', ' ', text)
+    return text.strip()
+
+# обробляєм текст
+data = [preprocess_text(t) for t in raw_data]
+```
