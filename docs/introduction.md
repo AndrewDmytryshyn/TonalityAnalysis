@@ -67,7 +67,7 @@ model = Word2Vec(data, size=200, window=5, min_count=3, workers=multiprocessing.
 # зберігаємо модель
 model.save("w2v/tweets_model.w2v")
  ```
- ### Підготовка ваг для Embedding шару
+ ### Крок 3. Підготовка ваг для Embedding шару
  На наступному етапі кожен текст був відображений у масиві ідентифікаторів токенів. Я вибрав розмір тексту s = 26, оскільки при данному значенні повністю покрито 99,71% усіх текстів у сформованому корпусі.  Кінцева розмірність матриці пропозицій склала s × d = 26 × 200.
  Було використане Word2Vec embeddings, які були отримані на попередньому кроці. Це обчислювально ефективна модель для вивчення вбудованих слів, розроблена Google. Детальний посібник з підготовки embedding шару доступний за [адресою](https://blog.keras.io/using-pre-trained-word-embeddings-in-a-keras-model.html)
  
@@ -103,3 +103,31 @@ for word, i in tokenizer.word_index.items():
         embedding_matrix[i] = w2v_model.wv[word]
 
  ```
+### Крок 4. Згорткова нейронна мережа
+Для побудови нейронної мережі я використав бібліотеку Keras, яка виступає високоуровневою надбудовою над TensorFlow, CNTK та Theano. У нашому випадку embedding шар було ініційовано вагами, отриманими при навчанні Word2Vec.\
+```python
+branches = []
+# додаємо dropout-регуляризацію
+x = Dropout(0.2)(tweet_encoder)
+
+for size, filters_count in [(2, 10), (3, 10), (4, 10), (5, 10)]:
+    for i in range(filters_count):
+        # додаємо шар згортки
+        branch = Conv1D(filters=1, kernel_size=size, padding='valid', activation='relu')(x)
+        # додаємо шар субдіскретізація
+        branch = GlobalMaxPooling1D()(branch)
+        branches.append(branch)
+# конкатеніруєм карти ознак
+x = concatenate(branches, axis=1)
+# додаємо dropout-регуляризацію
+x = Dropout(0.2)(x)
+x = Dense(30, activation='relu')(x)
+x = Dense(1)(x)
+output = Activation('sigmoid')(x)
+
+model = Model(inputs=[tweet_input], outputs=[output])
+ ```
+ Підсумкова модель була сконфігурована з функцією оптимізації Adam (Adaptive Moment Estimation) і бінарної крос-ентропії в якості опції помилок.
+ ### Тести
+
+>Всі тести знаходяться [тут](../tests/test.md)
