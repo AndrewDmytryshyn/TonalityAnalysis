@@ -17,7 +17,7 @@ labels = [1] * sample_size + [0] * sample_size
 ```
 * Перед початком навчання тексти пройшли процедуру попередньої обробки:
   * приведення до нижнього регістру;
-  * заміна «е» на «е»;
+  * заміна «ё» на «е»;
   * посилань на токен «URL»;
   * заміна згадки користувача на токен «USER»;
   * видалення знаків пунктуації.
@@ -51,4 +51,55 @@ with open('data/tweets.txt', 'w', encoding='utf-8') as f:
         if row[0]:
             tweet = preprocess_text(row[0])
             print(tweet, file=f)
+ ```
+Далі за допомогою бібліотеки Gensim була навчена Word2Vec-модель з наступними параметрами:
+
+* size = 200 - розмірність простору ознак;
+* window = 5 - кількість слів з контексту, яке аналізує алгоритм;
+* min_count = 3 - слово має зустрічатися мінімум три рази, щоб модель його враховувала.
+```python
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+
+# тренуємо модель, використовуємо gensim для векторного подання слів
+data = gensim.models.word2vec.LineSentence('daat/tweets.txt')
+model = Word2Vec(data, size=200, window=5, min_count=3, workers=multiprocessing.cpu_count())
+
+# зберігаємо модель
+model.save("w2v/tweets_model.w2v")
+ ```
+ ### Підготовка ваг для Embedding шару
+ На наступному етапі кожен текст був відображений у масиві ідентифікаторів токенів. Я вибрав розмір тексту s = 26, оскільки при данному значенні повністю покрито 99,71% усіх текстів у сформованому корпусі.  Кінцева розмірність матриці пропозицій склала s × d = 26 × 200.
+ Було використане Word2Vec embeddings, які були отримані на попередньому кроці. Це обчислювально ефективна модель для вивчення вбудованих слів, розроблена Google. Детальний посібник з підготовки embedding шару доступний за [адресою](https://blog.keras.io/using-pre-trained-word-embeddings-in-a-keras-model.html)
+ 
+ ```python
+ # відображення кожного речення в масив ідентифікаторів токенів
+# максимальна кількість слів в реченні
+SENTENCE_LENGTH = 26
+# розмір словника
+NUM = 100000
+
+
+def get_sequences(tokenizer, x):
+    sequences = tokenizer.texts_to_sequences(x)
+    return pad_sequences(sequences, maxlen=SENTENCE_LENGTH)
+
+tokenizer = Tokenizer(num_words=NUM)
+tokenizer.fit_on_texts(x_train)
+
+x_train_seq = get_sequences(tokenizer, x_train)
+x_test_seq = get_sequences(tokenizer, x_test)
+
+# створення і налаштування нейронної мережі
+# загружаем навчену модель векторів слів
+w2v_model = Word2Vec.load('models/w2v/tweets_model.w2v')
+DIM = w2v_model.vector_size
+# заповняєм embedding шар нулями
+embedding_matrix = np.zeros((NUM, DIM))
+# додаємо NUM=100000 слів які зустрічалися найбільше з навчальної вибірки в embedding шар
+for word, i in tokenizer.word_index.items():
+    if i >= NUM:
+        break
+    if word in w2v_model.wv.vocab.keys():
+        embedding_matrix[i] = w2v_model.wv[word]
+
  ```
